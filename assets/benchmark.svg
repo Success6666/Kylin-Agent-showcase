@@ -1,14 +1,47 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="650" viewBox="0 0 1500 650" role="img" aria-labelledby="title desc">
-  <title id="title">Evidence-Governed AIOps Chinese Benchmark v1.3.0</title>
-  <desc id="desc">The benchmark inventory contains six datasets and explicitly separates unique source cases, compatibility projections, and contract-only sections.</desc>
-  <defs><style>.b{stroke:#26364d;stroke-width:2;rx:15;ry:15}.t{font:700 22px 'Segoe UI','Microsoft YaHei',sans-serif;fill:#10233f}.s{font:400 16px 'Segoe UI','Microsoft YaHei',sans-serif;fill:#34465d}.n{font:700 26px 'Segoe UI','Microsoft YaHei',sans-serif;fill:#10233f}</style></defs>
-  <rect width="1500" height="650" fill="#f7f9fc"/><text x="55" y="55" class="t">Evidence-Governed AIOps Chinese Benchmark v1.3.0</text>
-  <rect x="510" y="105" width="480" height="92" class="b" fill="#243550" stroke="#243550"/><text x="750" y="145" text-anchor="middle" font="700 22px 'Segoe UI','Microsoft YaHei',sans-serif" fill="#fff">全量清单：4,380 行</text><text x="750" y="174" text-anchor="middle" font="400 16px 'Segoe UI','Microsoft YaHei',sans-serif" fill="#dbe6f5">4,200 unique source + 180 projection duplicate</text>
-  <rect x="70" y="275" width="260" height="120" class="b" fill="#e3edff"/><text x="200" y="322" text-anchor="middle" class="t">OpsIntent / Planner</text><text x="200" y="357" text-anchor="middle" class="n">800</text><text x="200" y="383" text-anchor="middle" class="s">工具/参数/计划结构</text>
-  <rect x="370" y="275" width="260" height="120" class="b" fill="#e5f4e8"/><text x="500" y="322" text-anchor="middle" class="t">OpsRAG</text><text x="500" y="357" text-anchor="middle" class="n">300</text><text x="500" y="383" text-anchor="middle" class="s">检索与引用</text>
-  <rect x="670" y="275" width="260" height="120" class="b" fill="#fff0cf"/><text x="800" y="322" text-anchor="middle" class="t">OpsSafety</text><text x="800" y="357" text-anchor="middle" class="n">1,200</text><text x="800" y="383" text-anchor="middle" class="s">安全边界与 hard gate</text>
-  <rect x="970" y="275" width="260" height="120" class="b" fill="#f0e6ff"/><text x="1100" y="322" text-anchor="middle" class="t">Evidence Gate</text><text x="1100" y="357" text-anchor="middle" class="n">1,600</text><text x="1100" y="383" text-anchor="middle" class="s">contract-only 回放</text>
-  <rect x="1270" y="275" width="170" height="120" class="b" fill="#ffe3e0"/><text x="1355" y="322" text-anchor="middle" class="t">Fault</text><text x="1355" y="357" text-anchor="middle" class="n">300</text><text x="1355" y="383" text-anchor="middle" class="s">静态规范</text>
-  <rect x="70" y="450" width="260" height="100" class="b" fill="#e9edf3"/><text x="200" y="490" text-anchor="middle" class="t">Agent 单工具投影</text><text x="200" y="526" text-anchor="middle" class="n">180</text>
-  <rect x="370" y="450" width="1070" height="100" class="b" fill="#eef3fa"/><text x="905" y="490" text-anchor="middle" class="t">每条结果绑定 SHA-256 manifest、case identity fingerprint、split 与 provenance</text><text x="905" y="526" text-anchor="middle" class="s">contract-only / unavailable / not_executed 不转换为通过；全量 split=all 不是 holdout 泛化结果</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="620" viewBox="0 0 1500 620" role="img" aria-labelledby="title desc">
+<title id="title">当前 Agent 运维场景与测量进展</title><desc id="desc">六维度各150条，共900条；原生抽样、RAG资料源召回和历史服务实验分别记录。</desc>
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="4" orient="auto"><path d="M0,0 L0,8 L9,4z" fill="#3857d6"/></marker><style>.title{font:700 29px 'Noto Sans CJK SC','Microsoft YaHei','Segoe UI',sans-serif;fill:#10233f}.label{font:700 22px 'Noto Sans CJK SC','Microsoft YaHei','Segoe UI',sans-serif;fill:#10233f}.small{font:400 17px 'Noto Sans CJK SC','Microsoft YaHei','Segoe UI',sans-serif;fill:#34465d}.box{stroke:#26364d;stroke-width:1.7}.arrow{stroke:#3857d6;stroke-width:2.6;fill:none;marker-end:url(#arrow)}.event{stroke:#6d5ba6;stroke-width:2.4;stroke-dasharray:8 6;fill:none;marker-end:url(#arrow)}</style></defs><rect width="1500" height="620" fill="#f7f9fc"/>
+<text x="55" y="55" class="title" text-anchor="start">agent_ops_zh_v1 · 当前场景集与测量进展</text>
+<text x="55" y="91" class="small" text-anchor="start">900 条 · 模型编写 · 合同、数据文件与场景哈希已校验</text>
+<rect x="55" y="140" width="215" height="140" rx="16" class="box" fill="#e3edff"/>
+<text x="162.5" y="178" class="label" text-anchor="middle">RAG 知识检索</text>
+<text x="162.5" y="213" class="small" text-anchor="middle">150 条</text>
+<text x="162.5" y="242" class="small" text-anchor="middle">资料与引用</text>
+<rect x="295" y="140" width="215" height="140" rx="16" class="box" fill="#e5f4e8"/>
+<text x="402.5" y="178" class="label" text-anchor="middle">工具调用</text>
+<text x="402.5" y="213" class="small" text-anchor="middle">150 条</text>
+<text x="402.5" y="242" class="small" text-anchor="middle">工具 / 参数 / 节点</text>
+<rect x="535" y="140" width="215" height="140" rx="16" class="box" fill="#fff0cf"/>
+<text x="642.5" y="178" class="label" text-anchor="middle">多步任务</text>
+<text x="642.5" y="213" class="small" text-anchor="middle">150 条</text>
+<text x="642.5" y="242" class="small" text-anchor="middle">连续诊断与验证</text>
+<rect x="775" y="140" width="215" height="140" rx="16" class="box" fill="#f0e6ff"/>
+<text x="882.5" y="178" class="label" text-anchor="middle">安全与审批</text>
+<text x="882.5" y="213" class="small" text-anchor="middle">150 条</text>
+<text x="882.5" y="242" class="small" text-anchor="middle">权限 / 动作审批</text>
+<rect x="1015" y="140" width="215" height="140" rx="16" class="box" fill="#ffe3e0"/>
+<text x="1122.5" y="178" class="label" text-anchor="middle">证据校验</text>
+<text x="1122.5" y="213" class="small" text-anchor="middle">150 条</text>
+<text x="1122.5" y="242" class="small" text-anchor="middle">完成证据</text>
+<rect x="1255" y="140" width="215" height="140" rx="16" class="box" fill="#e9edf3"/>
+<text x="1362.5" y="178" class="label" text-anchor="middle">故障恢复</text>
+<text x="1362.5" y="213" class="small" text-anchor="middle">150 条</text>
+<text x="1362.5" y="242" class="small" text-anchor="middle">恢复与接管</text>
+<rect x="55" y="330" width="445" height="155" rx="16" class="box" fill="#e3edff"/>
+<text x="277.5" y="368" class="label" text-anchor="middle">原生 Agent 抽样</text>
+<text x="277.5" y="403" class="small" text-anchor="middle">6 例 · 41 次模型请求</text>
+<text x="277.5" y="432" class="small" text-anchor="middle">机械检查完成，待业务复核</text>
+<text x="277.5" y="461" class="small" text-anchor="middle">平均 118.79 秒 · 611,868 Token</text>
+<rect x="530" y="330" width="445" height="155" rx="16" class="box" fill="#e5f4e8"/>
+<text x="752.5" y="368" class="label" text-anchor="middle">RAG 资料源召回</text>
+<text x="752.5" y="403" class="small" text-anchor="middle">150 查询 · 212 份竞争资料</text>
+<text x="752.5" y="432" class="small" text-anchor="middle">Top3：关键词 93/150</text>
+<text x="752.5" y="461" class="small" text-anchor="middle">BGE-M3 混合检索 125/150</text>
+<rect x="1005" y="330" width="440" height="155" rx="16" class="box" fill="#fff0cf"/>
+<text x="1225.0" y="368" class="label" text-anchor="middle">历史真实服务实验</text>
+<text x="1225.0" y="403" class="small" text-anchor="middle">Nginx / 日志 / PostgreSQL</text>
+<text x="1225.0" y="432" class="small" text-anchor="middle">记录恢复 3/3 · 127,483 Token</text>
+<text x="1225.0" y="461" class="small" text-anchor="middle">实现已更新，待复验</text>
+<text x="55" y="544" class="label" text-anchor="start">全量 Agent 实测与业务复核：待完成；RAG 回答质量：待评测。</text>
+<text x="55" y="582" class="small" text-anchor="start">抽样及召回记录：2026-10-14；本次源码、配置与内容哈希核对：2026-11-09。</text>
 </svg>

@@ -1,62 +1,70 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="920" viewBox="0 0 1600 920" role="img" aria-labelledby="title desc">
-  <title id="title">Kylin Agent 六服务架构总览</title>
-  <desc id="desc">Browser and Nginx front end, Spring Boot authentication gateway, FastAPI control plane, two managed agent nodes, RabbitMQ reliable event bus, and SQLite or etcd state.</desc>
-  <defs>
-    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="4" orient="auto"><path d="M0,0 L0,8 L11,4 z" fill="#3857d6"/></marker>
-    <marker id="arrow-muted" markerWidth="12" markerHeight="12" refX="10" refY="4" orient="auto"><path d="M0,0 L0,8 L11,4 z" fill="#66758b"/></marker>
-    <style>
-      .box{stroke:#26364d;stroke-width:2;rx:18;ry:18}
-      .title{font:700 28px 'Segoe UI','Microsoft YaHei',sans-serif;fill:#10233f}
-      .label{font:700 21px 'Segoe UI','Microsoft YaHei',sans-serif;fill:#10233f}
-      .small{font:400 16px 'Segoe UI','Microsoft YaHei',sans-serif;fill:#34465d}
-      .arrow{stroke:#3857d6;stroke-width:3;fill:none;marker-end:url(#arrow)}
-      .dashed{stroke:#66758b;stroke-width:2.5;stroke-dasharray:9 8;fill:none;marker-end:url(#arrow-muted)}
-      .chip{font:600 14px 'Segoe UI','Microsoft YaHei',sans-serif;fill:#26364d}
-    </style>
-  </defs>
-  <rect width="1600" height="920" fill="#f7f9fc"/>
-  <text x="70" y="62" class="title">Kylin Agent · 六服务架构与可靠事件边界</text>
-  <text x="70" y="94" class="small">第十五届“中国软件杯”全国三等奖项目 · 龙芯 3A5000 / LoongArch64 / 银河麒麟 V11</text>
-
-  <rect x="70" y="145" width="230" height="112" class="box" fill="#e3edff"/>
-  <text x="185" y="188" text-anchor="middle" class="label">Browser</text>
-  <text x="185" y="218" text-anchor="middle" class="small">Vue 控制台 · SSE</text>
-  <rect x="350" y="145" width="230" height="112" class="box" fill="#e9f7f0"/>
-  <text x="465" y="188" text-anchor="middle" class="label">Nginx</text>
-  <text x="465" y="218" text-anchor="middle" class="small">TLS · 静态资源</text>
-  <rect x="630" y="145" width="300" height="112" class="box" fill="#dff3ea"/>
-  <text x="780" y="188" text-anchor="middle" class="label">Spring Boot Gateway</text>
-  <text x="780" y="218" text-anchor="middle" class="small">Sa-Token · RBAC · HMAC v2</text>
-  <path d="M300 201 H350 M580 201 H630" class="arrow"/>
-
-  <rect x="500" y="340" width="600" height="168" class="box" fill="#ffe9e4"/>
-  <text x="800" y="385" text-anchor="middle" class="label">FastAPI Control Plane</text>
-  <text x="800" y="416" text-anchor="middle" class="small">Planning · Approval · Audit · Evaluation</text>
-  <text x="800" y="448" text-anchor="middle" class="small">ChatExecutionService · A2A · MCP · bounded workers</text>
-  <text x="800" y="480" text-anchor="middle" class="small">canonical fingerprint · cancellation · evidence gate</text>
-  <path d="M780 257 V340" class="arrow"/>
-
-  <rect x="90" y="625" width="320" height="150" class="box" fill="#fff0d2"/>
-  <text x="250" y="671" text-anchor="middle" class="label">Managed Agent Node A</text>
-  <text x="250" y="702" text-anchor="middle" class="small">Collection · Preflight · Execution</text>
-  <text x="250" y="730" text-anchor="middle" class="small">命令 / 文件 / Docker / 数据库</text>
-  <rect x="1190" y="625" width="320" height="150" class="box" fill="#fff0d2"/>
-  <text x="1350" y="671" text-anchor="middle" class="label">Managed Agent Node B</text>
-  <text x="1350" y="702" text-anchor="middle" class="small">Collection · Preflight · Execution</text>
-  <text x="1350" y="730" text-anchor="middle" class="small">节点令牌 · HMAC · 可取消操作</text>
-  <path d="M630 508 V570 H250 V625 M970 508 V570 H1350 V625" class="arrow"/>
-  <text x="380" y="556" text-anchor="middle" class="chip">HTTP + HMAC v2</text>
-  <text x="1220" y="556" text-anchor="middle" class="chip">HTTP + Node Token</text>
-
-  <rect x="535" y="625" width="530" height="150" class="box" fill="#eadfff"/>
-  <text x="800" y="671" text-anchor="middle" class="label">RabbitMQ Reliable Event Bus</text>
-  <text x="800" y="702" text-anchor="middle" class="small">durable topic · publisher confirm · manual ACK</text>
-  <text x="800" y="730" text-anchor="middle" class="small">DLX / DLQ · 重复投递与毒消息隔离</text>
-  <path d="M800 508 V625" class="dashed"/>
-  <text x="840" y="590" class="chip">AMQP</text>
-
-  <rect x="260" y="830" width="1080" height="55" class="box" fill="#243550" stroke="#243550"/>
-  <text x="800" y="865" text-anchor="middle" font="600 18px 'Segoe UI','Microsoft YaHei',sans-serif" fill="#ffffff">SQLite WAL / etcd · Outbox · 执行状态 · 租约 · 幂等账本 · 审计链 · Trace/Replay</text>
-  <path d="M800 775 V830" class="dashed"/>
-  <path d="M250 775 V805 H800 V830 M1350 775 V805 H800" class="dashed"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1120" viewBox="0 0 1600 1120" role="img" aria-labelledby="title desc">
+<title id="title">Kylin Agent 七服务分层架构</title><desc id="desc">访问认证、中心控制、受管执行与持久数据；PostgreSQL checkpoint 和独立 AI 服务。</desc>
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="4" orient="auto"><path d="M0,0 L0,8 L9,4z" fill="#3857d6"/></marker><style>.title{font:700 29px 'Noto Sans CJK SC','Microsoft YaHei','Segoe UI',sans-serif;fill:#10233f}.label{font:700 22px 'Noto Sans CJK SC','Microsoft YaHei','Segoe UI',sans-serif;fill:#10233f}.small{font:400 17px 'Noto Sans CJK SC','Microsoft YaHei','Segoe UI',sans-serif;fill:#34465d}.box{stroke:#26364d;stroke-width:1.7}.arrow{stroke:#3857d6;stroke-width:2.6;fill:none;marker-end:url(#arrow)}.event{stroke:#6d5ba6;stroke-width:2.4;stroke-dasharray:8 6;fill:none;marker-end:url(#arrow)}</style></defs><rect width="1600" height="1120" fill="#f7f9fc"/>
+<text x="55" y="55" class="title" text-anchor="start">Kylin Agent · 七服务分层架构</text>
+<text x="55" y="90" class="small" text-anchor="start">v1.0.2 · 龙芯 3A5000 / LoongArch64 / 银河麒麟 V11</text>
+<text x="55" y="144" class="label" text-anchor="start">访问与认证</text>
+<rect x="55" y="165" width="300" height="115" rx="16" class="box" fill="#e3edff"/>
+<text x="205.0" y="203" class="label" text-anchor="middle">浏览器 / Vue 工作台</text>
+<text x="205.0" y="238" class="small" text-anchor="middle">聊天 · 审批 · Trace · 评测</text>
+<rect x="405" y="165" width="300" height="115" rx="16" class="box" fill="#e9f7f0"/>
+<text x="555.0" y="203" class="label" text-anchor="middle">① panel / Nginx</text>
+<text x="555.0" y="238" class="small" text-anchor="middle">静态资源 · API 反向代理</text>
+<rect x="755" y="165" width="430" height="115" rx="16" class="box" fill="#dff3ea"/>
+<text x="970.0" y="203" class="label" text-anchor="middle">② auth / Spring Boot</text>
+<text x="970.0" y="238" class="small" text-anchor="middle">Sa-Token · RBAC · Cookie / CSRF</text>
+<path d="M355 223 H405" class="arrow"/>
+<path d="M705 223 H755" class="arrow"/>
+<path d="M970 280 V320 H790 V365" class="arrow"/>
+<text x="995" y="313" class="small" text-anchor="start">HMAC v2 可信用户上下文</text>
+<text x="55" y="350" class="label" text-anchor="start">中心控制</text>
+<rect x="420" y="365" width="740" height="200" rx="16" class="box" fill="#ffe9e4"/>
+<text x="790.0" y="403" class="label" text-anchor="middle">③ control / FastAPI</text>
+<text x="790.0" y="438" class="small" text-anchor="middle">原生 Agent：主模型 → 工具选择 → 观察 → 继续</text>
+<text x="790.0" y="467" class="small" text-anchor="middle">Harness：节点权限 · 预检 · 逐动作审批 · 证据核对</text>
+<text x="790.0" y="496" class="small" text-anchor="middle">治理 SDK：Schema · 幂等 · UNKNOWN · 审计</text>
+<text x="790.0" y="525" class="small" text-anchor="middle">任务 / checkpoint · 知识与记忆 · Trace / 评测</text>
+<rect x="1200" y="365" width="350" height="200" rx="16" class="box" fill="#eef0ff"/>
+<text x="1375.0" y="403" class="label" text-anchor="middle">独立 AI 服务</text>
+<text x="1375.0" y="438" class="small" text-anchor="middle">主模型 / function calling</text>
+<text x="1375.0" y="467" class="small" text-anchor="middle">Embedding / 查询改写</text>
+<text x="1375.0" y="496" class="small" text-anchor="middle">Rerank / 分别配置</text>
+<path d="M1160 455 H1200" class="arrow"/>
+<text x="1180" y="348" class="small" text-anchor="middle">模型请求 / 检索组件</text>
+<text x="55" y="643" class="label" text-anchor="start">受管执行</text>
+<rect x="80" y="665" width="450" height="165" rx="16" class="box" fill="#fff0d2"/>
+<text x="305.0" y="703" class="label" text-anchor="middle">④ agent-node-1</text>
+<text x="305.0" y="738" class="small" text-anchor="middle">采集 · 诊断 · 配置变更 · 恢复</text>
+<text x="305.0" y="767" class="small" text-anchor="middle">本机命令 / 文件 / Docker / 数据库</text>
+<text x="305.0" y="796" class="small" text-anchor="middle">能力目录 · 业务健康证据</text>
+<rect x="1030" y="665" width="450" height="165" rx="16" class="box" fill="#fff0d2"/>
+<text x="1255.0" y="703" class="label" text-anchor="middle">⑤ agent-node-2</text>
+<text x="1255.0" y="738" class="small" text-anchor="middle">采集 · 诊断 · 配置变更 · 恢复</text>
+<text x="1255.0" y="767" class="small" text-anchor="middle">本机命令 / 文件 / Docker / 数据库</text>
+<text x="1255.0" y="796" class="small" text-anchor="middle">能力目录 · 业务健康证据</text>
+<path d="M600 565 V605 H305 V665" class="arrow"/>
+<path d="M980 565 V605 H1255 V665" class="arrow"/>
+<text x="305" y="637" class="small" text-anchor="middle">HTTP / 节点令牌 / 可选 mTLS</text>
+<text x="1255" y="637" class="small" text-anchor="middle">HTTP / 节点令牌 / 可选 mTLS</text>
+<text x="55" y="890" class="label" text-anchor="start">持久数据与事件</text>
+<rect x="55" y="915" width="465" height="150" rx="16" class="box" fill="#e3edff"/>
+<text x="287.5" y="953" class="label" text-anchor="middle">SQLite WAL / 可选 etcd</text>
+<text x="287.5" y="988" class="small" text-anchor="middle">任务 · 租约 · 幂等 · 审计</text>
+<text x="287.5" y="1017" class="small" text-anchor="middle">SQLite Outbox / FTS5 / FAISS</text>
+<text x="287.5" y="1046" class="small" text-anchor="middle">各业务存储按配置使用</text>
+<rect x="565" y="915" width="440" height="150" rx="16" class="box" fill="#eadfff"/>
+<text x="785.0" y="953" class="label" text-anchor="middle">⑥ RabbitMQ</text>
+<text x="785.0" y="988" class="small" text-anchor="middle">durable topic · publisher confirm</text>
+<text x="785.0" y="1017" class="small" text-anchor="middle">manual ACK · DLX / DLQ</text>
+<text x="785.0" y="1046" class="small" text-anchor="middle">控制面事件投递与落库</text>
+<rect x="1050" y="915" width="495" height="150" rx="16" class="box" fill="#e5f4e8"/>
+<text x="1297.5" y="953" class="label" text-anchor="middle">⑦ PostgreSQL</text>
+<text x="1297.5" y="988" class="small" text-anchor="middle">持久 checkpoint · 会话恢复</text>
+<text x="1297.5" y="1017" class="small" text-anchor="middle">审批状态与模型工具记录</text>
+<text x="1297.5" y="1046" class="small" text-anchor="middle">龙芯部署必需服务</text>
+<path d="M445 565 V585 H35 V990 H55" class="event"/>
+<path d="M1140 565 V585 H1570 V990 H1545" class="event"/>
+<path d="M790 565 V915" class="event"/>
+<text x="810" y="855" class="small" text-anchor="start">Outbox → AMQP → confirm / ACK</text>
+<text x="55" y="1099" class="small" text-anchor="start">实线：请求与工具调用；虚线：数据与事件。浏览器、独立模型服务和本地数据文件按职责单独显示。</text>
 </svg>

@@ -1,16 +1,19 @@
-# LoongArch64 / 麒麟适配
+# 龙芯与麒麟平台适配
 
-## TL;DR
+生产交付面向龙芯 3A5000、LoongArch64 和银河麒麟高级服务器 V11，构建、部署和验收平台为 `linux/loong64`。其他架构用于本地开发、静态检查与界面联调。
 
-目标部署环境是龙芯 3A5000、LoongArch64 和银河麒麟 V11。适配策略是把架构相关依赖集中在文档解析、OCR、推理和镜像层，业务治理逻辑保持平台无关，并用 wheel、镜像 content ID 和 SHA-256 记录可复现边界。
+## 系统画像与预检
 
-## 关键取舍
+发行版画像读取 `/etc/os-release` 和麒麟版本证据。专项检查覆盖 KYSEC / SELinux、auditd、firewalld、rpm / dnf / yum、systemd、NetworkManager、RAS、SNMP 与 V11 原生工具。
 
-- 文档解析采用 **ONNX-only** 路径，组合 Layout Heron 与 RapidOCR，避免依赖在 LoongArch64 上不可用的闭源推理运行时。
-- 二进制依赖优先使用 Loongnix 官方 wheel；无法安装时在构建阶段显式失败，不在运行时静默降级到不兼容实现。
-- 节点与控制面通过能力清单协商；缺失能力进入 unavailable/needs_review，不让模型猜测“应该能执行”。
-- 镜像以 content ID + SHA-256 联合校验，防止同名标签覆盖导致节点执行了错误版本。
+部署预检汇总配置、密钥、状态后端、离线 wheelhouse、Docker 与宿主平台，记录 Python 标签、GCC 目标、glibc、页大小、LSX / LASX 和镜像架构。
 
-## 验证边界
+## 文档与观测
 
-展示仓库不包含镜像、wheel、模型权重或节点凭据。适配结论应在目标 LoongArch64/麒麟 V11 环境中复测；本仓库只保留架构决策、校验字段和可审计的结果摘要。
+LoongArch 文档链路使用 Layout Heron ONNX 与 RapidOCR ONNX，结构块由 Docling `HybridChunker` 生成。二进制依赖采用 Loongnix wheel 或明确的原生构建流程，模型制品记录固定版本和 SHA-256。
+
+原生 FAISS 缺失时使用 NumPy 精确检索兼容实现。运行时 Trace 经标准 OTLP/HTTP Bridge 导出脱敏工作流、模型、工具与审批记录，并配置 LoongArch 真机契约工作流。
+
+## 交付记录
+
+镜像、依赖与模型按平台和内容摘要核验，节点按能力目录提供当前可用工具。展示仓库公开适配方案和测量摘要，目标真机验收记录按具体版本、环境与时间维护。

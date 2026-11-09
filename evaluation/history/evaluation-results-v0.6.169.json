@@ -1,0 +1,129 @@
+{
+  "schema_version": "kylin-agent-showcase.evaluation-summary.v1",
+  "source_artifact": "artifacts/evaluation/v0.6.169-local/eval-results.json",
+  "run": {
+    "id": "eval-20260715115941-0fab7f2a",
+    "generated_at": "2026-07-15T11:59:41.008870+00:00",
+    "app_version": "0.6.169",
+    "execution_mode": "comprehensive_local",
+    "provider": "local",
+    "model_calls_enabled": false,
+    "production_path": false
+  },
+  "dataset_inventory": {
+    "agent": {
+      "available_records": 98,
+      "evaluated_records": 80
+    },
+    "rag": {
+      "available_records": 80,
+      "evaluated_records": 80
+    },
+    "available_records_total": 178,
+    "benchmark_records_evaluated": 160,
+    "selection_note": "历史版本记录按各自数据集身份与运行时间保存。"
+  },
+  "summary": {
+    "status": "passed",
+    "hard_gate_ok": true,
+    "total": 255,
+    "passed": 252,
+    "failed": 1,
+    "unavailable": 2,
+    "critical_failures": 0,
+    "pass_rate": 0.996,
+    "raw_score": 0.9893,
+    "score": 0.9893,
+    "coverage_count": 12
+  },
+  "sections": [
+    {
+      "key": "baseline",
+      "total": 8,
+      "passed": 8,
+      "failed": 0,
+      "score": 1.0
+    },
+    {
+      "key": "rag",
+      "total": 80,
+      "passed": 79,
+      "failed": 1,
+      "score": 0.9875,
+      "threshold": 0.7
+    },
+    {
+      "key": "agent_function_call",
+      "total": 80,
+      "passed": 78,
+      "failed": 0,
+      "unavailable": 2,
+      "score": 0.9971,
+      "threshold": 0.8
+    },
+    {
+      "key": "chunking",
+      "total": 4,
+      "passed": 4,
+      "failed": 0,
+      "score": 0.95
+    },
+    {
+      "key": "planner",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "score": 0.9917
+    },
+    {
+      "key": "security",
+      "total": 18,
+      "passed": 18,
+      "failed": 0,
+      "score": 1.0
+    },
+    {
+      "key": "tool",
+      "total": 10,
+      "passed": 10,
+      "failed": 0,
+      "score": 1.0
+    },
+    {
+      "key": "approval",
+      "total": 10,
+      "passed": 10,
+      "failed": 0,
+      "score": 1.0
+    },
+    {
+      "key": "memory_pipeline",
+      "total": 8,
+      "passed": 8,
+      "failed": 0,
+      "score": 0.934
+    },
+    {
+      "key": "answer_quality",
+      "total": 10,
+      "passed": 10,
+      "failed": 0,
+      "score": 0.93
+    },
+    {
+      "key": "performance",
+      "total": 9,
+      "passed": 9,
+      "failed": 0,
+      "score": 1.0
+    },
+    {
+      "key": "cluster",
+      "total": 12,
+      "passed": 12,
+      "failed": 0,
+      "score": 1.0
+    }
+  ],
+  "interpretation": "历史运行：总样本 255，通过 252，失败 1，不可用 2；原始报告 pass_rate 为 0.996，score 为 0.9893。"
+}

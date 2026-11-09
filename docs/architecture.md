@@ -1,58 +1,79 @@
-# 架构说明
+# 系统架构与原生工具循环
 
-## TL;DR
+Kylin Agent v1.0.2 采用中心控制面与受管节点架构。控制面管理模型会话、任务、审批与证据，节点执行本机采集和操作。七个 Compose 服务为 `panel + auth + control + agent-a + agent-b + RabbitMQ + PostgreSQL`。
 
-Kylin Agent 将“接入、编排、审批、执行、证据、评测”拆成可独立限流的控制面与节点面。核心取舍是：模型只产生受约束的计划，执行器成为副作用唯一入口，SQLite WAL/Outbox、RabbitMQ 和事件序列共同承担可恢复性。
-
-## 问题边界
-
-普通 Agent 往往把 HTTP handler、模型调用、工具执行和结果拼接写在一条链路里；重试时会重复副作用，断线时无法判断终态，节点状态和控制台状态也可能分叉。本项目把边界显式化：Gateway 负责身份与协议，Control Plane 负责意图、计划、审批、审计和评测，Agent Node 负责采集、预检和执行。
-
-## 六服务拓扑
-
-1. **Browser/Vue Panel**：提交请求、显示 SSE、审批和回放。
-2. **Nginx**：TLS、静态资源和反向代理边界。
-3. **Spring Boot Gateway**：Sa-Token、RBAC、CSRF、HMAC v2 和外部会话治理。
-4. **FastAPI Control Plane**：Planning、Approval、Audit、Evaluation 及统一执行生命周期。
-5. **Agent Node A/B**：节点身份、能力采集、Preflight、受限工具执行和证据回传。
-6. **RabbitMQ + SQLite/etcd**：durable topic、publisher confirm、manual ACK、DLX/DLQ、Outbox、WAL 状态与租约。
-
-可编辑拓扑：[`diagrams/architecture.mmd`](../diagrams/architecture.mmd)；渲染图：[`assets/architecture.svg`](../assets/architecture.svg)。
-
-## 关键数据流
+## 组件连接
 
 ```mermaid
-sequenceDiagram
-    participant U as 用户/控制台
-    participant G as Gateway
-    participant C as Control Plane
-    participant E as 统一执行服务
-    participant N as Agent Node
-    participant S as WAL/Outbox
-    U->>G: REST / A2A / SSE
-    G->>C: 身份、限流、审计上下文
-    C->>E: request_id + canonical fingerprint
-    E->>S: acquire / heartbeat / complete
-    E->>N: 受限工具调用 + HMAC v2
-    N-->>E: 结果、证据、截断状态
-    E->>S: 终态与可靠事件
-    S-->>U: 可重放终态/增量事件
+flowchart TB
+    subgraph access[访问与认证]
+        U[浏览器 / Vue 工作台] --> P[Nginx 面板服务]
+        P --> G[Spring Boot / Sa-Token]
+    end
+    subgraph control[中心控制面]
+        API[FastAPI / REST / SSE / A2A / MCP]
+        LOOP[原生 Agent 模型与工具循环]
+        H[Harness / 预检 / 审批 / 证据核对]
+        SDK[治理 SDK / Schema / 幂等 / 审计]
+        API --> LOOP --> H --> SDK
+    end
+    subgraph execution[受管执行节点]
+        A[节点 A / 采集 / 诊断 / 变更]
+        B[节点 B / 采集 / 诊断 / 变更]
+    end
+    subgraph data[数据与事件]
+        S[(SQLite WAL / etcd / 任务与审计)]
+        PG[(PostgreSQL / checkpoint)]
+        O[SQLite Outbox]
+        MQ[RabbitMQ / confirm / ACK / DLQ]
+        K[知识库 / FTS5 / FAISS]
+    end
+    subgraph ai[独立 AI 服务]
+        M[主模型 / function calling]
+        E[Embedding / 查询改写 / Rerank]
+    end
+    G -->|HMAC v2 可信用户上下文| API
+    SDK -->|HTTP / 节点令牌 / 可选 mTLS| A
+    SDK -->|HTTP / 节点令牌 / 可选 mTLS| B
+    LOOP <-->|模型请求与调用结果| M
+    LOOP --> K
+    K --> E
+    API --> S
+    H --> S
+    LOOP --> PG
+    API --> O
+    O -->|AMQP / publisher confirm| MQ
+    MQ -->|manual ACK / 事件落库| API
 ```
 
-## 非显而易见的工程决策
+浏览器访问面板和认证网关；网关提供角色与节点身份，节点接口核对独立令牌。工具执行走节点 HTTP，RabbitMQ 负责控制面的可靠事件链路。龙芯部署的 PostgreSQL 专门保存 checkpoint，SQLite / etcd 按配置承担任务和状态功能，Outbox 与知识库使用各自持久存储。
 
-| 多数实现 | 本项目机制 | 避免的问题 |
-| --- | --- | --- |
-| REST/A2A/SSE 各自维护生命周期 | `ChatExecutionService` 统一 acquire、heartbeat、complete、cancel | 同一 `client_request_id` 在不同协议下产生两次副作用 |
-| 进程内永久锁 | owner token + TTL 租约 + 心跳 + `unknown_outcome` | worker 崩溃后请求永久卡死，或未知结果被误判为可重试 |
-| 每个 SSE 请求创建线程 | 共享 64 workers / 512 queue，有界 reliable buffer | 并发连接放大线程数，终态事件被普通日志挤掉 |
-| `capture_output=True` 后整体裁剪 | 64 KiB 分块、100 MiB 命令上限、20 MiB SafeExecutor 上限 | 大输出先占满内存，进程被 OOM 杀死 |
-| 文件先 Base64 再传输 | `FileResponse`/`StreamingResponse`、Range、Blob、AbortController | 20 MiB 文件额外膨胀约 33%，下载期间无法取消 |
+## 模型与工具循环
 
-## 验证与边界
+请求和会话历史直接进入 `FunctionCallingAgentLoop`。模型选择工具，Harness 校验调用，节点返回 ToolMessage 观察，模型继续诊断、检索、提问或回答。
 
-- PERF-001～006 已有针对性证据；文件流改造 targeted suite 为 **107 passed / 3 skipped**。
-- 资源上限：同步池 **8 workers / 32 queue**，SSE 池 **64 workers / 512 queue**，命令输出 **100 MiB**，SafeExecutor 输出 **20 MiB**，文件流分块 **64 KiB**。
-- 这些数字是代码契约与 targeted tests 的结果，不等于生产集群容量基准；生产容量仍需在目标 LoongArch 部署环境复测。
+工具目录超过 12 个时，先提供业务分类、中文用途和数量。模型通过 `discover_tools` 发现并加载完整声明，上下文最多保留 12 个完整工具声明，可跨分类继续查询。工具选择、已加载声明与字节数进入 Trace，Token 取自模型回执。
 
-相关文档：[`security-layers.md`](security-layers.md) · [`reliability.md`](reliability.md) · [`trace-replay.md`](trace-replay.md) · [`evaluation.md`](evaluation.md)
+`AgentGraphRuntime` 提供 Harness：节点绑定、权限、Schema、命令、路径、预检、审批和完成证据核对。写调用先形成参数与节点绑定的提案，批准后复用冻结动作执行，再把真实结果送回原会话。`Plan` 保存已发生的工具选择与待批动作。
+
+## 提问、引导与恢复
+
+| 交互 | 运行行为 |
+| --- | --- |
+| 提问 | `request_user_input` 保存 checkpoint 并进入 `waiting_input`，原操作者回答后恢复 |
+| 运行中引导 | 在模型调用间消费补充信息，尚未执行的工具选择按新引导重新处理 |
+| 排队消息 | 当前任务结束后按顺序派发，等待提问或审批时暂停，可取消 |
+| 审批恢复 | checkpoint 保存消息、调用 ID 与用量，恢复时核对当前权限和动作版本 |
+| 完成核对 | 缺失证据反馈给模型继续处理，信息缺口进入提问，持续阻塞标为未完成 |
+
+Token、活动时间和轮数持续观测。相同观察或相同错误先触发调整提示，持续停滞后停止自动重试。主模型配置缺失或显式关闭原生调用时使用规则模式。
+
+LangGraph 管理已有状态、checkpoint 与兼容工作流；原生循环由模型根据观察选择下一步，Harness 校验每次实际操作。详细技术分工见 [技术栈](technology-stack.md)。
+
+## 请求、执行与消息
+
+`ChatExecutionService` 统一 REST / A2A / SSE 生命周期，请求指纹、owner token、租约与幂等账本关联同一请求。事件先写入 SQLite Outbox，再经 RabbitMQ 确认投递；消费完成后手动 ACK，错误消息进入 DLQ。
+
+同步池默认 8 workers / 32 queue，SSE 池默认 64 workers / 512 queue，均可配置。任务、审批、调用和回放通过 Trace 关联。
+
+图示源文件：[architecture.mmd](../diagrams/architecture.mmd)。相关内容：[安全与审批](security-layers.md) · [可靠性](reliability.md) · [Trace](trace-replay.md)。

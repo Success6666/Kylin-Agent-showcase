@@ -1,0 +1,119 @@
+{
+  "schema_version": "kylin-showcase.status.v1",
+  "updated_on": "2026-11-09",
+  "application_version": "1.0.2",
+  "source_revision": "a0ec2e99289c82bf6058c073e05906ee81cc4c54",
+  "source_commit_date": "2026-10-17",
+  "production_platform": "linux/loong64",
+  "production_compose": {
+    "services": [
+      "panel",
+      "auth-backend",
+      "control",
+      "agent-node-1",
+      "agent-node-2",
+      "rabbitmq",
+      "postgres"
+    ],
+    "service_count": 7,
+    "checkpoint_backend": "postgres"
+  },
+  "source_evidence": [
+    {
+      "path": "pyproject.toml",
+      "sha256": "590337d42a411b67c6e33a34e30b7448b9df3120d5afba3fd66b4a89ab1b2864"
+    },
+    {
+      "path": "frontend/package.json",
+      "sha256": "34acbc3dae0a92d184656995778cdcfc1c86e069b46ceffe19bea9f7abf08c2b"
+    },
+    {
+      "path": "auth_backend_spring/pom.xml",
+      "sha256": "414108c29d3be5c22722b8965d0517dac1a9813410f6319ad8951efc60e9b6a7"
+    },
+    {
+      "path": "docker-compose.competition.loong64.yml",
+      "sha256": "f4ede2b6638b0c52674959571de7c81260cf42e98e3482d4fd46e6b76e2f4230"
+    },
+    {
+      "path": "agent/graph/agent_loop.py",
+      "sha256": "2044a1b1e2b3f58cdeb6fb6cadb36b2a217ec61aae23724bedc8fc175b7653ca"
+    },
+    {
+      "path": "agent/runtime/alert_delivery.py",
+      "sha256": "8872799f792e4751bab068b79fee0f120c23c61c6b105cfb29a2ad586b8fd7c8"
+    },
+    {
+      "path": "agent/main.py",
+      "sha256": "9bc1acc1e7cf9ce645fb72971303ad7cf505cdcf08f2a4c95ae72958558616b9"
+    },
+    {
+      "path": "agent/api/evaluation_routes.py",
+      "sha256": "84848113dd16bd32a223dbf55de85c0027ca7557cecc05f44c3b0af55e421c99"
+    },
+    {
+      "path": "agent/evaluation/curated_view.py",
+      "sha256": "b434d35266d1effb60954803675302eb2165ed1dd9a5e0474d2e6cfadd9c21fc"
+    },
+    {
+      "path": "agent/memory/governance.py",
+      "sha256": "50c3c765d179410c35ffc74b7a616cddf1baaf323a6d49ec527b3121ac618be8"
+    }
+  ],
+  "current_dataset": {
+    "id": "agent_ops_zh_v1",
+    "records": 900,
+    "dimensions": {
+      "rag": 150,
+      "agent": 150,
+      "planning": 150,
+      "safety": 150,
+      "evidence": 150,
+      "recovery": 150
+    },
+    "data_sha256": {
+      "rag": "41811067f9d4dde747d786cf57fbe7084be57581be37c80efc4d792dc74f3489",
+      "agent": "d7f77431adc69c8b2ba376f73b4e24741fb7fa82ab7e17c90b73492c3b64a70f",
+      "planning": "cfdfbfceaba020b59b153ecd2a927c19994424bfc11e07501e2c5a2737848412",
+      "safety": "cb45af0021836fe9b6a5dbc18a6d505216d90557b5b062bd3539b24695634208",
+      "evidence": "ff13f9a67e4745ffd5ea40c1854e3e3cd4d60cba75dc034c8d4c2442e7f236ee",
+      "recovery": "7bf2bfbafa0b20ceaa1bb02b00fa33049c0d8c85697695049dc988cba2e92894"
+    },
+    "hashes_verified": true
+  },
+  "native_sample": {
+    "measured_cases": 6,
+    "business_review_pending": 6,
+    "status": "待业务复核"
+  },
+  "rag": {
+    "measured_queries_per_mode": 150,
+    "documents": 212,
+    "status": "资料源召回已测量"
+  },
+  "real_service_fault_lab": {
+    "historical_cases": 3,
+    "status": "待复验"
+  },
+  "local_regression": {
+    "date": "2026-11-09",
+    "source_revision": "a0ec2e99289c82bf6058c073e05906ee81cc4c54",
+    "python": "3.13",
+    "test_files": [
+      "tests/test_native_agent_loop.py",
+      "tests/test_monitor.py",
+      "tests/test_alert_delivery.py",
+      "tests/test_trace_graph.py",
+      "tests/test_curated_ops.py",
+      "tests/test_curated_evaluation_view.py",
+      "tests/test_operations_closed_loop.py",
+      "tests/test_memory_governance.py"
+    ],
+    "passed": 250,
+    "subtests_passed": 7,
+    "warnings": 1,
+    "duration_seconds": 11.91,
+    "status": "passed"
+  },
+  "deployment_verification_status": "本次核对源码、配置与本地回归"
+}

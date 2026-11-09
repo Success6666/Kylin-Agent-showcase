@@ -1,135 +1,112 @@
-# Kylin Agent — 面向信创运维场景的可控式 AIOps Agent
+# Kylin Agent · 面向信创服务器的智能运维平台
 
-> 第十五届“中国软件杯”A2 赛道 · 全国三等奖（国三）
+> 第十五届“中国软件杯”A2 赛道 · 全国三等奖
 > 龙芯 3A5000 · LoongArch64 · 银河麒麟高级服务器 V11
 
-让 Agent 在国产信创环境中**可控、可审计、可回放、可评测**地执行运维任务。
+Kylin Agent 将自然语言请求转成可审批、可审计、可回放的运维任务。主模型自主选择工具和处理顺序，中心控制面管理权限、预检与逐动作审批，受管节点采集事实、执行操作并返回证据。
 
-![Kylin Agent 六服务架构](assets/architecture.svg)
+本仓库公开架构图、功能说明、开发取舍、演示流程与脱敏测量摘要。项目作为毕业设计继续迭代，源码、完整数据集和部署资产暂不发布。
 
-本仓库是 Kylin Agent 的 Showcase，不包含源码、模型密钥、生产数据或可直接部署的二进制包。源码暂不公开，是因为项目将作为毕业设计继续迭代；这里公开的是可复核的架构决策、失败边界、评测口径和脱敏结果。
+## 当前进展
 
-## 当前验证基线
+主项目 **v1.0.2**，核对提交 `a0ec2e9`（2026-10-17）；展示内容更新于 **2026-11-09**。
 
-主项目版本：**v0.6.280**（2026-08-09）。
-生产执行路径默认使用 `agent-runtime-governance` v0.9.1；原生治理实现仅作为显式 legacy fallback 保留。
-
-- 全量 Python 测试：**2352 passed / 4 skipped**；总覆盖率 **80.58%**，覆盖率门禁为 80%。
-- GitHub Actions 自动化链路：Python 3.10/3.11/3.14、Java、前端真实浏览器、评测、打包、Future AGI、LoongArch OTLP 和 Docker 双拓扑 smoke 全部通过。
-- Docker 多 Agent smoke 覆盖 RabbitMQ、控制面、两个节点、节点绑定、远程只读执行、监控、RAG 去重和审计导出。
-- 供应链摘要按 LF 规范化，Windows 与 Ubuntu 检出同一文本内容时得到一致 SHA-256；RabbitMQ 健康探针不依赖脚本执行位。
-
-## 快速了解
-
-Kylin Agent 把一条自然语言运维请求收敛为：
-
-```text
-请求 → 认证/限流 → 意图与计划 → 风险审批 → 有界执行 → 证据审计 → 评测判定
-```
-
-它解决的不是“模型能不能调用工具”，而是 Agent 产生真实副作用之后，如何保证：
-
-- 同一请求跨 REST/A2A/SSE 不重复执行；
-- worker 崩溃、超时或断线后，状态不会永久卡死或被旧结果覆盖；
-- 危险命令、路径混淆、容器标识注入和超大输出在执行边界被拒绝或限界；
-- 结果必须绑定工具回执、检索证据或审计记录，安全关键失败可以阻断发布。
-
-## 六服务架构
-
-```text
-Browser / Vue Panel
-        │ HTTP / SSE
-        ▼
-Nginx ──► Spring Boot Authentication Gateway
-          Sa-Token · RBAC · CSRF · HMAC v2
-        │ trusted user context
-        ▼
-FastAPI Control Plane
-  Planning · Approval · Audit · Evaluation
-        │ HMAC v2 + Node Token
-        ├──────────────► Agent Node A
-        └──────────────► Agent Node B
-                Collection · Preflight · Execution
-
-Control Plane ── SQLite Outbox ── AMQP ── RabbitMQ durable topic
-                                      ├─ publisher confirm
-                                      ├─ manual ACK
-                                      └─ DLX / DLQ
-
-SQLite WAL / etcd：执行记录、租约、幂等账本、审计链与事件回放
-```
-
-可编辑图：[`diagrams/architecture.mmd`](diagrams/architecture.mmd)；安全、消息和评测图位于 [`assets/`](assets/)。
-
-## 四个工程决策
-
-| 常见实现 | Kylin Agent 的机制 | 避免的具体故障 |
-| --- | --- | --- |
-| REST、A2A、SSE 各自维护执行状态 | `ChatExecutionService` + canonical JSON SHA-256 指纹 + SQLite WAL | 同一 `client_request_id` 产生两次副作用，或一个协议已完成而另一个仍显示 running |
-| 用进程内永久锁表示“正在执行” | owner token、租约 TTL、心跳、过期接管与 `unknown_outcome` | worker 崩溃后请求永久卡死；变更任务在结果未知时被错误重放 |
-| 每条 SSE 请求创建 daemon thread | 共享 64 worker / 512 queue 的背压池，普通事件合并，终态可靠缓冲 | 100 个并发连接无限增线程，背压时 final/approval/error 事件被挤掉 |
-| `capture_output=True` 后再裁剪 | 分块读取 + 有界尾部环形缓冲；单次命令/执行器返回 `truncated` | 100 MiB 持续输出先占满内存，应用来不及执行裁剪 |
-| 每次审计校验计算全表摘要 | `audit_chain_state` 尾部元数据、唯一幂等账本、增量后缀校验 | 百万条审计记录下健康检查仍 O(n)，相同 key 的冲突 payload 被静默复用 |
-| 文件下载先 Base64 再由浏览器解码 | `FileResponse` / `StreamingResponse` + `Range` + `AbortController` | 20 MiB 文件膨胀到约 26.7 MiB，并同时保留 raw、字符串、Uint8Array 与 Blob |
-
-安全防御的分层图：[`assets/security-layers.svg`](assets/security-layers.svg)。可靠事件时序：[`assets/reliability-sequence.svg`](assets/reliability-sequence.svg)。
-
-## 评测证据：
-
-当前公开结果分为“数据集清单”和“历史运行产物”两种口径：
-
-| 口径 | 数字 | 含义 |
-| --- | ---: | --- |
-| 当前全量清单 | **4,380 行** | OpsRAG 300 + Agent 单工具投影 180 + Planner/OpsIntent 800 + OpsSafety 1,200 + Evidence Gate 1,600 + Fault Recovery 300 |
-| 唯一源案例 | **4,200** | 4,380 行扣除来自 OpsIntent 的 180 条兼容投影 |
-| 历史 v0.6.203 可用规模 | **2,480** | Agent 180、Planner 800、RAG 300、Safety 1,200 |
-| 历史 v0.6.203 实际运行 | **769** | 680 条 benchmark + 89 条系统/质量用例 |
-| 历史 v0.6.203 结果 | **764/769，99.35% raw pass** | 2 个安全关键失败触发 hard gate，最终 score 为 0 |
-
-这意味着 99.35% 不是“全量数据集成绩”，而是整改前受控子集上的阶段性结果；安全关键失败被保留在分母中，没有被转换成 unavailable 或从统计中删除。评测中心当前已经接入 4,380 行（其中 4,200 条唯一来源用例、180 条兼容投影），manifest、split、case identity fingerprint 和 provenance 均可追踪；待主项目全部整改项完成后，再发布对应的本轮全量运行结果。
-
-评测维度固定为：任务成功率、工具调用准确率、结果正确性与一致性、事实有据性、首事件/终态延迟分位数、真实 Token/成本、人工接管混淆矩阵。评测图：[`assets/benchmark.svg`](assets/benchmark.svg)。
-
-公开脱敏结果：
-
-- [`evaluation-results-v0.6.203.json`](evaluation/evaluation-results-v0.6.203.json)：含 hard gate 失败语义与失败分母；
-- [`evaluation-results-v0.6.169.json`](evaluation/evaluation-results-v0.6.169.json)：历史基线，255 总用例、252 通过、2 不可用；
-- [`tool-effect-summary-v0.6.169.json`](evaluation/tool-effect-summary-v0.6.169.json)：87 个注册工具中 22 个当前主机可执行，22/22 验证通过，不可用和未执行不计为通过；
-- [`performance-baseline-v0.6.169.json`](evaluation/performance-baseline-v0.6.169.json)：历史本地 2 用例 P50/P90/P99 和吞吐基线。
-
-## 可验证的工程边界
-
-- 同步执行池默认 **8 workers / 32 queue**；SSE 共享池默认 **64 workers / 512 queue**，容量耗尽显式返回 503，deadline 返回 504。
-- 持续 **100 MiB** 命令输出、**20 MiB** SafeExecutor 输出在有界内存内完成，响应标记 `truncated`。
-- 文件下载使用 64 KiB 分块，支持 `Accept-Ranges: bytes`、206/416、`Content-Disposition` 和客户端取消。
-- 2026-08-08 文件流整改定向回归 **107 passed / 3 skipped**；2026-08-09 任务书完成后的全量项目测试为 **2352 passed / 4 skipped**。
-
-## 技术栈与适配
-
-Python · FastAPI · LangGraph · Spring Boot · Vue · RabbitMQ · SQLite WAL / FTS5 · FAISS · Docling · ONNX · Docker · GitHub Actions
-
-目标平台为 LoongArch64。文档处理采用 ONNX-only 路径（Layout Heron、RapidOCR），二进制依赖优先使用 Loongnix 官方 wheel；镜像以 content ID + SHA-256 联合校验。
-
-## 阅读路径
-
-| 想回答的问题 | 文档 |
+| 进展 | 当前实现 |
 | --- | --- |
-| 六服务如何分工，数据怎么流？ | [`docs/architecture.md`](docs/architecture.md) |
-| Agent 为什么不会直接裸奔执行？ | [`docs/security-layers.md`](docs/security-layers.md) |
-| 消息为什么不会因重启丢失？ | [`docs/reliability.md`](docs/reliability.md) |
-| 文档如何进入混合检索和 RCA？ | [`docs/rag-knowledge.md`](docs/rag-knowledge.md) |
-| 如何重放一次执行并定位问题？ | [`docs/trace-replay.md`](docs/trace-replay.md) |
-| 评测分母、失败和 gate 如何解释？ | [`docs/evaluation.md`](docs/evaluation.md) |
-| 龙芯/麒麟环境的限制是什么？ | [`docs/loongarch-adaptation.md`](docs/loongarch-adaptation.md) |
+| 原生 Agent 循环 | 请求直接进入主模型，通过 function calling 选择工具、读取观察并继续处理；大目录按需发现和加载工具 |
+| 长任务交互 | 运行中补充引导、排队发送、暂停提问、回答后恢复原会话；审批后继续验证 |
+| 运维处置 | 配置差异预览与应用、数据库会话诊断与恢复、备份恢复与回退、多节点分批变更、业务健康验证 |
+| 平台与飞书 | 自动采样、告警防抖、通知和恢复跟踪；操作人员点击生成方案后调用 Agent，变更逐动作审批 |
+| Trace 工作台 | 业务流程与组件调用两级视图，展示阶段、模型用量、工具观察和 Harness 结论 |
+| 经验与记忆 | 处置验证后生成待审经验，审核发布后参与检索；定期归纳、限量核心记忆、事实时效与冲突管理 |
+| 评测中心 | 默认展示 `agent_ops_zh_v1`：六个维度各 150 条，共 900 条；按数据与场景哈希关联测量记录 |
 
-## 从 Kylin Agent 到通用治理 SDK
+## 分层架构
 
-在项目中反复遇到的审批一致性、副作用幂等、未知结果对账和证据链问题，被进一步抽象为框架无关的 [Agent Runtime Governance SDK](https://github.com/Success6666/agent-runtime-governance)。这条路径体现的是：真实系统故障 → 提炼跨框架契约 → 独立运行时治理组件，而不是简单复制项目代码。
+![Kylin Agent 分层架构](assets/architecture.svg)
 
-当前主路径由 SDK 负责 action binding、Schema 校验、审批决策、持久化幂等、UNKNOWN 结果和 JSONL 审计；Kylin Agent Adapter 负责业务注册表、节点上下文和公开结果映射。专项测试覆盖安全决策透传、预演/正式执行幂等键隔离、内部参数隔离、Schema 拒绝、审计脱敏和 legacy fallback；Graph、MCP、ReAct 通用回归验证 SDK 接入后的业务语义。SDK 本身未发现缺陷，项目没有复制修补 SDK 代码。
+生产交付面向 `linux/loong64`，采用 **panel + auth + control + 两个 agent + RabbitMQ + PostgreSQL** 七服务 Compose。浏览器访问面板，PostgreSQL 保存 checkpoint，SQLite / etcd 按配置提供其他状态功能。
 
-## 源码边界
+| 层次 | 组件 | 职责 |
+| --- | --- | --- |
+| 访问层 | Vue 面板 / Nginx | 聊天、巡检、告警、文件、数据库、审批、审计与评测 |
+| 认证层 | Spring Boot / Sa-Token | 账号、角色、节点权限、Cookie / CSRF、HMAC v2 可信签名 |
+| 控制层 | FastAPI / 原生 Agent / Harness | 模型会话、工具发现、任务状态、预检、审批、证据核对 |
+| 执行层 | 受管 Agent 节点 | 节点令牌认证、采集、诊断、变更和健康验证，可配置 mTLS |
+| 数据层 | PostgreSQL / SQLite WAL / etcd / RabbitMQ | checkpoint、状态、租约、幂等、Outbox、可靠消息、审计和回放 |
+| AI 与知识 | 独立模型服务 / Docling / FAISS | 主模型、Embedding、查询改写、Rerank、结构解析与检索 |
 
-本仓库明确是 Showcase only。Kylin Agent 是第十五届“中国软件杯”全国三等奖项目，源码不在此仓库发布；后续将作为毕业设计持续迭代，待研究内容、授权边界和部署资产稳定后再决定开放范围。仓库只发布架构图、设计决策、脱敏评测 JSON 和可复核的限制说明。
+网关到控制面使用 HMAC v2；控制面到节点使用 HTTP 与节点令牌；事件先写 SQLite Outbox，再经 RabbitMQ 确认投递。详细连接关系见 [架构说明](docs/architecture.md)。
 
-演示入口：[`docs/demo.md`](docs/demo.md)。
+## 一次任务如何推进
+
+```text
+运维请求 → 身份与节点权限 → 主模型选择工具 → 受管节点返回观察
+                              ↑                     │
+                              └──── 继续研判 ────────┘
+需要信息：提问 → 操作人员回答 → 恢复会话
+需要变更：预检 → 逐动作审批 → 执行 → 业务验证
+任务结束：证据核对 → Trace / 审计 → 待审经验
+```
+
+工具目录超过 12 个时，先提供分类和用途，由模型调用 `discover_tools` 发现工具并加载完整参数声明。模型可跨分类继续查询；Harness 在执行前校验 Schema、角色、节点范围、命令、路径及审批。
+
+Token、活动时间和轮数持续记录。重复错误或相同观察触发调整提示，持续停滞后保留证据并结束自动重试。提问和审批保存 checkpoint，回答或批准后回到同一会话继续处理。
+
+## 技术栈
+
+| 模块 | 技术 | 在项目中的用途 |
+| --- | --- | --- |
+| 前端工作台 | Vue 3、Vite、Mermaid、Marked、DOMPurify | 交互面板、静态资源构建、流程图与 Markdown 展示 |
+| 认证服务 | Java 17、Spring Boot 3.5.16、Sa-Token 1.45.0 | 用户会话、RBAC、可信网关与身份核验 |
+| 控制面与节点 | Python ≥3.10、FastAPI、Uvicorn、HTTPX | API、流式响应、节点通信和运维工具 |
+| Agent 与恢复 | 原生 function-calling 循环、LangGraph 0.2.76、PostgreSQL / SQLite checkpoint | 模型/工具循环、审批恢复与兼容工作流 |
+| 执行治理 | Agent Runtime Governance SDK v0.9.1 | Schema、审批、持久幂等、UNKNOWN 和 JSONL 审计 |
+| 知识与文档 | SQLite FTS5 / BM25、FAISS / NumPy、Docling、ONNX、RapidOCR | 关键词/混合检索、结构切块、版面识别与 OCR |
+| 消息与观测 | RabbitMQ / Pika、OpenTelemetry OTLP/HTTP | 可靠事件投递与脱敏 Trace 导出 |
+| 工程交付 | Docker Compose、GitHub Actions、pytest、Spring 测试、浏览器 smoke | 七服务编排、构建、功能回归和验收 |
+
+详见 [技术栈与组件职责](docs/technology-stack.md)。SDK 依赖固定到提交 `4cfb9ccc`，Kylin Adapter 绑定业务工具、节点身份与公开结果。
+
+## 实测记录
+
+| 测量范围 | 已记录结果 | 当前状态 |
+| --- | --- | --- |
+| 900 条场景集 | 六维度各 150 条，模型编写，合同与内容哈希已校验 | 数据就绪，全量 Agent 实测待完成 |
+| 6 个原生 Agent 抽样 | 真实模型 + 隔离模拟工具；41 次模型请求，平均 118.79 秒，已报告 611,868 Token | 机械检查完成，6 例待业务复核 |
+| 150 条 RAG 查询 | 212 份竞争资料；关键词资料源 Top3 为 93/150，BGE-M3 混合检索为 125/150 | 资料源召回已测量，回答质量待评测 |
+| 3 个真实服务故障样例 | 历史记录：Nginx、日志、PostgreSQL 均恢复，127,483 Token | 实现已更新，待复验 |
+| 本次功能回归 | 原生循环、监控、飞书、Trace、评测、处置和记忆：250 passed、7 subtests passed | 2026-11-09 本地检查通过 |
+
+6 例抽样记录来自 2026-10-14 的运行及定向复测。工具耗时取自夹具派发，用量缺失 1 次，费用为 `null`。包含首次多步失败的全部 7 次尝试另存为 53 次模型请求、已报告 804,351 Token。当前运行策略使用用量观测与停滞控制。
+
+详细来源见 [评测说明](docs/evaluation.md)、[当前状态](evaluation/current-status.json) 与 [测量摘要](evaluation/agent-ops-measurements-2026-10-14.json)。旧版成绩归档于 [历史记录](evaluation/history/README.md)。
+
+![当前场景集与测量进展](assets/benchmark.svg)
+
+## 开发过程中的主要取舍
+
+| 演进 | 选择 | Git 记录 |
+| --- | --- | --- |
+| 多协议任务生命周期 | REST / A2A 共用请求指纹、租约、取消和结果复用 | `f59e046` |
+| 流式并发 | 固定 worker 池与有界队列，终态可靠缓存，中间事件可合并 | `7a56252` |
+| 运行时治理 | 通用审批、幂等与审计交给独立 SDK，业务语义由 Adapter 绑定 | `2dc44cd` |
+| Agent 编排 | 从 IntentGraph + 规划流程演进到主模型原生工具循环，保留按需工具发现 | `dd066a1` → `84e8040` |
+| 评测与知识 | 新场景集、测量分项、待审经验与时效事实统一接入工作台 | `84e8040` |
+| 告警处置 | 自动采样与通知，操作人员主动生成方案，逐动作审批 | `a0ec2e9` |
+
+每项的动机、实现成本及提交关系见 [Git 历史中的开发取舍](docs/development-decisions.md)。
+
+## 阅读与演示
+
+| 内容 | 入口 |
+| --- | --- |
+| 系统连接与原生循环 | [架构](docs/architecture.md) · [技术栈](docs/technology-stack.md) |
+| 权限、预检与逐动作审批 | [安全与审批](docs/security-layers.md) |
+| 变更、恢复与经验整理 | [运维闭环](docs/operations.md) · [知识与记忆](docs/rag-knowledge.md) |
+| 告警和卡片处置 | [告警与飞书](docs/alerts-feishu.md) |
+| 业务与组件回放、消息恢复 | [Trace](docs/trace-replay.md) · [可靠性](docs/reliability.md) |
+| 龙芯与麒麟适配 | [平台适配](docs/loongarch-adaptation.md) |
+| 七分钟演示 | [演示脚本](docs/demo.md) |
+
+项目中的审批一致性、副作用幂等、未知结果对账与证据链机制，已抽象为独立的 [Agent Runtime Governance SDK](https://github.com/Success6666/agent-runtime-governance)。

@@ -1,14 +1,14 @@
 flowchart TB
-    U[Browser / Vue Panel] --> N[Nginx]
-    N --> G[Spring Boot Authentication Gateway<br/>Sa-Token · RBAC · HMAC v2]
-    G --> P[FastAPI Control Plane<br/>Planning · Approval · Audit · Evaluation]
-    P --> A[Managed Agent Node A<br/>Collection · Preflight · Execution]
-    P --> B[Managed Agent Node B<br/>Collection · Preflight · Execution]
-    P --> O[SQLite Outbox]
-    O --> R[RabbitMQ durable topic<br/>Publisher Confirm · Manual ACK]
-    R --> A
-    R --> B
-    R --> D[DLX / DLQ]
-    P --> S[(SQLite WAL / etcd<br/>Lease · Idempotency · Audit · Replay)]
-    A --> S
-    B --> S
+    U[浏览器 / Vue] --> P[panel / Nginx]
+    P --> G[auth / Spring Boot / Sa-Token]
+    G -->|HMAC v2| C[control / FastAPI / 原生 Agent / Harness / SDK]
+    C -->|HTTP / 节点令牌| A[agent-node-1]
+    C -->|HTTP / 节点令牌| B[agent-node-2]
+    C <-->|function calling| M[独立主模型]
+    C --> K[知识库 / FTS5 / FAISS]
+    K --> E[Embedding / 查询改写 / Rerank]
+    C --> S[(SQLite WAL / 可选 etcd / 任务与审计)]
+    C --> PG[(PostgreSQL / checkpoint)]
+    C --> O[SQLite Outbox]
+    O -->|AMQP / confirm| R[RabbitMQ / DLX / DLQ]
+    R -->|事件落库 / manual ACK| C

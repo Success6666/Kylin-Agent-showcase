@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1500" height="650" viewBox="0 0 1500 650" role="img" aria-labelledby="title desc">
   <title id="title">SQLite Outbox 与 RabbitMQ 可靠事件时序</title>
-  <desc id="desc">A business event is committed to SQLite outbox, confirmed by RabbitMQ, acknowledged by an agent node, and isolated into DLX or DLQ on failure.</desc>
-  <defs><marker id="a" markerWidth="12" markerHeight="12" refX="10" refY="4" orient="auto"><path d="M0,0 L0,8 L11,4z" fill="#3857d6"/></marker><style>.t{font:700 22px 'Segoe UI','Microsoft YaHei',sans-serif;fill:#10233f}.s{font:400 16px 'Segoe UI','Microsoft YaHei',sans-serif;fill:#34465d}.l{stroke:#9aa8ba;stroke-width:2;stroke-dasharray:7 7}.a{stroke:#3857d6;stroke-width:3;fill:none;marker-end:url(#a)}</style></defs>
+  <desc id="desc">A business event is committed to SQLite outbox, confirmed by RabbitMQ, acknowledged by the control-plane event consumer, and isolated into DLX or DLQ on failure.</desc>
+  <defs><marker id="a" markerWidth="12" markerHeight="12" refX="10" refY="4" orient="auto"><path d="M0,0 L0,8 L11,4z" fill="#3857d6"/></marker><style>.t{font:700 22px 'Noto Sans CJK SC','Microsoft YaHei','Segoe UI',sans-serif;fill:#10233f}.s{font:400 16px 'Noto Sans CJK SC','Microsoft YaHei','Segoe UI',sans-serif;fill:#34465d}.l{stroke:#9aa8ba;stroke-width:2;stroke-dasharray:7 7}.a{stroke:#3857d6;stroke-width:3;fill:none;marker-end:url(#a)}</style></defs>
   <rect width="1500" height="650" fill="#f7f9fc"/><text x="55" y="52" class="t">可靠事件：业务事务与消息投递分离，但状态可恢复</text>
-  <g class="s" text-anchor="middle"><text x="190" y="100">Control Plane</text><text x="500" y="100">SQLite Outbox</text><text x="850" y="100">RabbitMQ</text><text x="1190" y="100">Agent Node</text></g>
+  <g class="s" text-anchor="middle"><text x="190" y="100">Control Plane</text><text x="500" y="100">SQLite Outbox</text><text x="850" y="100">RabbitMQ</text><text x="1190" y="100">Control Event Consumer</text></g>
   <path d="M190 120V585M500 120V585M850 120V585M1190 120V585" class="l"/>
   <path d="M190 165H500" class="a"/><text x="280" y="150" class="s">write event (same transaction)</text>
   <path d="M500 245H850" class="a"/><text x="620" y="230" class="s">publish · durable topic</text>

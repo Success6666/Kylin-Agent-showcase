@@ -1,34 +1,28 @@
-# 可靠性与故障恢复
+# 可靠消息、幂等与故障恢复
 
-## TL;DR
+系统分别记录消息投递、副作用执行与结果确认。SQLite Outbox 保存待投递事件，RabbitMQ 管理持久消息、确认和死信，执行账本保存请求身份、租约与操作结果。
 
-系统把“消息已发出”“副作用已发生”“结果已确认”拆成不同状态。SQLite Outbox 解决提交与发布之间的窗口，RabbitMQ confirm/手动 ACK/DLX-DLQ 解决投递与消费失败，幂等账本和 `unknown_outcome` 解决重试歧义。
-
-## 状态机
+## 任务状态
 
 ```text
-request accepted -> planned -> approval_pending -> dispatched
-       |                |              |                |
-       +-------------- cancelled      +-- rejected       +-- running
-                                                          |
-                                  succeeded / failed / unknown_outcome
+接收请求 → 模型与工具循环 → 提问 / 审批 / 执行 → 业务验证
+                         ↓                  ↓
+                   checkpoint 恢复     完成 / 未完成 / UNKNOWN / 取消
 ```
 
 ## 关键机制
 
-- **Outbox**：业务状态和待发布事件在同一 SQLite 事务中提交；进程在 commit 后、publish 前崩溃时，恢复任务仍能从 Outbox 发布。
-- **RabbitMQ**：durable topic、publisher confirm、manual ACK；消费者处理失败进入重试/死信链路，不在内存中静默丢弃。
-- **幂等**：`client_request_id + canonical fingerprint` 识别相同请求；执行账本记录 owner token、租约、结果摘要和副作用阶段。
-- **未知结果**：节点执行后连接断开或超时，状态进入 `unknown_outcome`，要求人工核验或证据补偿后才允许后续动作。
-- **事件回放**：事件带单调序号；普通阶段事件可合并，终态/审批/错误/取消事件进入可靠缓冲，客户端按 `Last-Event-ID` 补读。
+| 机制 | 实现 |
+| --- | --- |
+| Outbox | 事件事务性写入 SQLite，恢复任务补发未确认记录 |
+| RabbitMQ | durable topic、publisher confirm、manual ACK、DLX / DLQ |
+| 请求幂等 | `client_request_id + canonical fingerprint` 关联同一任务 |
+| 执行所有权 | owner token、TTL 租约、心跳、过期接管与结果复用 |
+| UNKNOWN | 副作用后的回执缺失进入证据核对，保留执行记录 |
+| SSE | 普通事件可合并，终态、审批、错误与取消可靠缓存；按游标补读 |
 
-## 失败场景与处理
+Outbox 发布后收到 broker confirm 才标记已发送。控制面事件消费者完成持久处理后 ACK，毒消息进入 DLQ。工具执行通过节点 HTTP 派发，消息链路负责事件持久投递。
 
-| 失败窗口 | 错误做法 | Kylin Agent 行为 |
-| --- | --- | --- |
-| commit 后 publish 前崩溃 | 状态已变更但消息不存在 | Outbox 重启扫描并补发 |
-| consumer 处理后 ACK 前崩溃 | 重复投递造成重复副作用 | 消费幂等键 + 执行账本拒绝第二次副作用 |
-| 副作用后回执丢失 | 直接重试写操作 | 标记 `unknown_outcome`，进入人工核验 |
-| SSE 背压 | 让所有事件争抢同一队列 | 可靠事件单独保留并暴露 dropped/coalesced |
+![可靠事件时序](../assets/reliability-sequence.svg)
 
-图示：[`../assets/reliability-sequence.svg`](../assets/reliability-sequence.svg) · 源文件：[`../diagrams/reliability.mmd`](../diagrams/reliability.mmd)
+当前同步池默认 8 workers / 32 queue，SSE 池默认 64 workers / 512 queue，容量耗尽显式返回状态。调用输出分块读取并记录 `truncated`，文件下载支持 Range 与客户端取消。

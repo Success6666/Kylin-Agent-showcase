@@ -1,0 +1,162 @@
+{
+  "schema_version": "kylin-showcase.fault-history.v1",
+  "checked_on": "2026-11-09",
+  "source_report": {
+    "path": "docs/evaluation/ops-closure/fault-lab.json",
+    "sha256": "68ba60e3e49a4b7e9fbf20aef5cce2f04a3acd1f89ba00e8650ba1017892b4a9"
+  },
+  "status": "待复验",
+  "scope": "可销毁真实服务实验",
+  "approval_scope": "synthetic_fixture_only",
+  "implementation_hash_matches": {
+    "agent/graph/agent_loop.py": false,
+    "agent/graph/staged_rollout.py": true,
+    "agent/evaluation/curated_runtime.py": false,
+    "agent/tools/business_health.py": true,
+    "agent/tools/config_patch.py": true,
+    "agent/tools/database_diagnostics.py": true,
+    "agent/tools/database_sessions.py": true,
+    "agent/memory/native_experience.py": true,
+    "agent/memory/experience.py": true
+  },
+  "recorded_implementation_sha256": {
+    "agent/graph/agent_loop.py": "285ca06e7ee18336192291bdeea7644aa8912c5a99716cb59b128b7f711ed755",
+    "agent/graph/staged_rollout.py": "83342f25feae69de564dbcfa15cb63d4e17b311660dfa9a441d1f9eef4e02ac4",
+    "agent/evaluation/curated_runtime.py": "422d7577a0dba1a40059dd39f0435e5cfd99c91e3a00a32e0293a42122c455fb",
+    "agent/tools/business_health.py": "fcfa8bc07c0b46cd7418d8de42591c1f8f70ecfb4b69033343e7de74859ea957",
+    "agent/tools/config_patch.py": "b4f2c20b0e2b5ac1803d9db6429490e02eb2b8e2699696d455a77ddf326c6c57",
+    "agent/tools/database_diagnostics.py": "14f15675b7e69517ed61e2aac5e68923db447b312f45ea4200a478a34eccd2b1",
+    "agent/tools/database_sessions.py": "aafe2b7b0ad3c31aba6280a4690ae12e86236331c8f75607754aba08969461c7",
+    "agent/memory/native_experience.py": "720ef37e7f8e76db301c91c55d3e20ba2e7de18f93db4c8d55f75eef7485e25b",
+    "agent/memory/experience.py": "b61e5cf340d2c0e646be4956fce178f7856fcfd1b7802ba1296a2c447560adf5"
+  },
+  "historical_summary": {
+    "schema_version": "kylin-agent.fault-closure.v1",
+    "cases": 3,
+    "faults_observed": 3,
+    "recovered": 3,
+    "recovery_rate": 1.0,
+    "incorrect_actions": 0,
+    "manual_takeovers": 0,
+    "telemetry": {
+      "cases_measured": 3,
+      "latency": {
+        "measured_count": 3,
+        "mean_ms": 84552.863,
+        "p50_ms": 91011.376,
+        "p95_ms": 95115.697,
+        "p99_ms": 95480.526,
+        "max_ms": 95571.733
+      },
+      "llm_latency": {
+        "measured_count": 21,
+        "mean_ms": 11686.275,
+        "p50_ms": 5763.466,
+        "p95_ms": 35316.473,
+        "p99_ms": 42598.183,
+        "max_ms": 44418.61012499976
+      },
+      "tool_latency": {
+        "measured_count": 3,
+        "mean_ms": 2150.634,
+        "p50_ms": 2143.02,
+        "p95_ms": 2189.953,
+        "p99_ms": 2194.125,
+        "max_ms": 2195.1678629993694
+      },
+      "retrieval_latency": {
+        "measured_count": 3,
+        "mean_ms": 0.0,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_ms": 0.0,
+        "max_ms": 0
+      },
+      "ttft": {
+        "measured_count": 21,
+        "mean_ms": 10933.536,
+        "p50_ms": 4577.254,
+        "p95_ms": 35108.601,
+        "p99_ms": 42310.191,
+        "max_ms": 44110.588667999764
+      },
+      "model_requests": 21,
+      "observed_token_totals": {
+        "input_tokens": 119871,
+        "output_tokens": 7612,
+        "total_tokens": 127483,
+        "cached_input_tokens": 68480,
+        "cost_usd": null
+      },
+      "usage_reported_requests": 21,
+      "missing_usage_requests": 0,
+      "failed_model_requests": 0,
+      "retried_model_requests": 0,
+      "quality_successes": 0,
+      "semantic_review_pending": 0,
+      "generation_usage_included": false,
+      "usage_coverage": {
+        "input_tokens": 21,
+        "output_tokens": 21,
+        "total_tokens": 21,
+        "cached_input_tokens": 13,
+        "cost_usd": 0
+      },
+      "incomplete_token_usage_requests": 0,
+      "token_usage_complete": true
+    }
+  },
+  "cases": [
+    {
+      "case_id": "fault-lab-nginx",
+      "model": "deepseek-v4.1-flash",
+      "stop_reason": "model_stop",
+      "closure": {
+        "fault_injected_and_observed": true,
+        "independent_final_state_healthy": true,
+        "health_evidence_count": 1,
+        "recovery_verified": true,
+        "incorrect_actions": 0,
+        "approved_actions": 2,
+        "executed_actions": 2,
+        "manual_takeover_required": false,
+        "agent_reported_complete": true
+      },
+      "service_adapter": "isolated_nginx_process"
+    },
+    {
+      "case_id": "fault-lab-disk",
+      "model": "deepseek-v4.1-flash",
+      "stop_reason": "model_stop",
+      "closure": {
+        "fault_injected_and_observed": true,
+        "independent_final_state_healthy": true,
+        "health_evidence_count": 1,
+        "recovery_verified": true,
+        "incorrect_actions": 0,
+        "approved_actions": 2,
+        "executed_actions": 1,
+        "manual_takeover_required": false,
+        "agent_reported_complete": true
+      },
+      "service_adapter": "production_tool"
+    },
+    {
+      "case_id": "fault-lab-database",
+      "model": "deepseek-v4.1-flash",
+      "stop_reason": "model_stop",
+      "closure": {
+        "fault_injected_and_observed": true,
+        "independent_final_state_healthy": true,
+        "health_evidence_count": 1,
+        "recovery_verified": true,
+        "incorrect_actions": 0,
+        "approved_actions": 1,
+        "executed_actions": 1,
+        "manual_takeover_required": false,
+        "agent_reported_complete": true
+      },
+      "service_adapter": "production_tool"
+    }
+  ]
+}

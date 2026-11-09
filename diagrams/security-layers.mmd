@@ -1,7 +1,11 @@
 flowchart LR
-    I[用户输入] --> L1[L1 输入层<br/>确定性硬拦截 + 语义风险分类]
-    L1 --> L2[L2 规划层<br/>工具契约 + 候选路由]
-    L2 --> L3[L3 执行层<br/>参数硬校验 + action_id + 审批]
-    L3 --> L4[L4 审计层<br/>Hash Chain + Outbox + Evidence]
-    L1 -. high risk .-> L3
-    L1 --> X[拒绝 / 澄清 / 等待人工接管]
+    U[请求身份 / 原始输入确定性检查] --> D[主模型 / 按需工具发现]
+    D --> H[Harness / 参数 / 节点 / 权限]
+    H --> R[只读调用]
+    H --> P[写操作提案 / 预检]
+    P --> A[逐动作审批]
+    A --> SDK[SDK / 幂等 / UNKNOWN]
+    SDK --> E[执行与业务验证]
+    R --> O[工具观察 / Trace / 审计]
+    E --> O
+    O --> D

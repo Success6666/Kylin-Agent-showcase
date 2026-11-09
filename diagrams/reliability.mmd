@@ -2,7 +2,7 @@ sequenceDiagram
     participant C as Control Plane
     participant O as SQLite Outbox
     participant R as RabbitMQ
-    participant N as Agent Node
+    participant N as Control Event Consumer
     C->>O: transactionally write event
     O-->>C: pending
     O->>R: publish

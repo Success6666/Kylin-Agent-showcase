@@ -4,7 +4,9 @@
   "generated_at": "2026-07-15T11:30:27.557828+00:00",
   "source_scope": "host_safe_runtime",
   "authoritative": false,
-  "registry": {"registered": 87},
+  "registry": {
+    "registered": 87
+  },
   "selection": {
     "executed": 22,
     "eligible_current_host": 22,
@@ -21,5 +23,5 @@
     "executed_failed_counts_as_passed": false,
     "external_targets": "never simulated; unavailable/not_executed is preserved"
   },
-  "interpretation": "22 个当前 Windows 主机可安全执行的工具全部通过；28 个不可用和 37 个未执行工具没有被计入通过率。该结果不是对 Linux/LoongArch/Docker 外部目标的替代。"
+  "interpretation": "历史 Windows 主机工具验证：22 个可执行工具通过，28 个不可用，37 个未执行。"
 }

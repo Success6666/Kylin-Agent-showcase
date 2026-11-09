@@ -1,13 +1,30 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="520" viewBox="0 0 1500 520" role="img" aria-labelledby="title desc">
-  <title id="title">Kylin Agent 四层纵深安全防御</title>
-  <desc id="desc">Input, planning, execution and audit layers with a high-risk approval path.</desc>
-  <defs><marker id="a" markerWidth="12" markerHeight="12" refX="10" refY="4" orient="auto"><path d="M0,0 L0,8 L11,4z" fill="#3857d6"/></marker><style>.b{stroke:#26364d;stroke-width:2;rx:16;ry:16}.t{font:700 22px 'Segoe UI','Microsoft YaHei',sans-serif;fill:#10233f}.s{font:400 16px 'Segoe UI','Microsoft YaHei',sans-serif;fill:#34465d}.a{stroke:#3857d6;stroke-width:3;fill:none;marker-end:url(#a)}</style></defs>
-  <rect width="1500" height="520" fill="#f7f9fc"/><text x="55" y="55" class="t">四层纵深安全：越靠近副作用，校验越确定</text>
-  <rect x="55" y="145" width="285" height="170" class="b" fill="#ffe3e0"/><text x="197" y="195" text-anchor="middle" class="t">L1 输入层</text><text x="197" y="230" text-anchor="middle" class="s">硬拦截危险词/混淆输入</text><text x="197" y="263" text-anchor="middle" class="s">LLM 只负责语义分类</text><text x="197" y="296" text-anchor="middle" class="s">wipe all → BLOCK</text>
-  <rect x="410" y="145" width="285" height="170" class="b" fill="#fff0cf"/><text x="552" y="195" text-anchor="middle" class="t">L2 规划层</text><text x="552" y="230" text-anchor="middle" class="s">工具注册表 / schema</text><text x="552" y="263" text-anchor="middle" class="s">能力候选路由</text><text x="552" y="296" text-anchor="middle" class="s">缺失能力不进入候选</text>
-  <rect x="765" y="145" width="285" height="170" class="b" fill="#e4edff"/><text x="907" y="195" text-anchor="middle" class="t">L3 执行层</text><text x="907" y="230" text-anchor="middle" class="s">路径/命令/参数硬校验</text><text x="907" y="263" text-anchor="middle" class="s">action_id 幂等账本</text><text x="907" y="296" text-anchor="middle" class="s">高风险逐动作审批</text>
-  <rect x="1120" y="145" width="285" height="170" class="b" fill="#e5f4e8"/><text x="1262" y="195" text-anchor="middle" class="t">L4 审计层</text><text x="1262" y="230" text-anchor="middle" class="s">Hash Chain / Outbox</text><text x="1262" y="263" text-anchor="middle" class="s">工具回执与证据绑定</text><text x="1262" y="296" text-anchor="middle" class="s">失败可回放、可追责</text>
-  <path d="M340 230h70M695 230h70M1050 230h70" class="a"/>
-  <rect x="330" y="395" width="840" height="65" class="b" fill="#243550" stroke="#243550"/><text x="750" y="436" text-anchor="middle" font="600 19px 'Segoe UI','Microsoft YaHei',sans-serif" fill="#fff">高风险分支：拒绝 / 澄清 / 等待人工接管 → 通过 action 校验后才执行</text>
-  <path d="M197 315V360H750V395M907 315V360M1262 315V360H750" class="a"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="550" viewBox="0 0 1500 550" role="img" aria-labelledby="title desc">
+<title id="title">Kylin Agent 执行校验与审批</title><desc id="desc">请求身份、工具发现、Harness校验、治理与证据记录。</desc>
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="4" orient="auto"><path d="M0,0 L0,8 L9,4z" fill="#3857d6"/></marker><style>.title{font:700 29px 'Noto Sans CJK SC','Microsoft YaHei','Segoe UI',sans-serif;fill:#10233f}.label{font:700 22px 'Noto Sans CJK SC','Microsoft YaHei','Segoe UI',sans-serif;fill:#10233f}.small{font:400 17px 'Noto Sans CJK SC','Microsoft YaHei','Segoe UI',sans-serif;fill:#34465d}.box{stroke:#26364d;stroke-width:1.7}.arrow{stroke:#3857d6;stroke-width:2.6;fill:none;marker-end:url(#arrow)}.event{stroke:#6d5ba6;stroke-width:2.4;stroke-dasharray:8 6;fill:none;marker-end:url(#arrow)}</style></defs><rect width="1500" height="550" fill="#f7f9fc"/>
+<text x="55" y="55" class="title" text-anchor="start">从请求身份到执行证据</text>
+<rect x="55" y="145" width="285" height="190" rx="16" class="box" fill="#ffe3e0"/>
+<text x="197.5" y="183" class="label" text-anchor="middle">请求与身份</text>
+<text x="197.5" y="218" class="small" text-anchor="middle">角色 / 节点范围</text>
+<text x="197.5" y="247" class="small" text-anchor="middle">原始输入确定性检查</text>
+<text x="197.5" y="276" class="small" text-anchor="middle">HMAC v2 / 节点令牌</text>
+<path d="M340 240 H410" class="arrow"/>
+<rect x="410" y="145" width="285" height="190" rx="16" class="box" fill="#fff0cf"/>
+<text x="552.5" y="183" class="label" text-anchor="middle">工具发现</text>
+<text x="552.5" y="218" class="small" text-anchor="middle">分类 / 用途 / Schema</text>
+<text x="552.5" y="247" class="small" text-anchor="middle">按需加载完整声明</text>
+<text x="552.5" y="276" class="small" text-anchor="middle">模型根据观察继续</text>
+<path d="M695 240 H765" class="arrow"/>
+<rect x="765" y="145" width="285" height="190" rx="16" class="box" fill="#e4edff"/>
+<text x="907.5" y="183" class="label" text-anchor="middle">执行与审批</text>
+<text x="907.5" y="218" class="small" text-anchor="middle">Harness 参数与权限校验</text>
+<text x="907.5" y="247" class="small" text-anchor="middle">预检 / 冻结动作 / 审批</text>
+<text x="907.5" y="276" class="small" text-anchor="middle">SDK 幂等 / UNKNOWN</text>
+<path d="M1050 240 H1120" class="arrow"/>
+<rect x="1120" y="145" width="285" height="190" rx="16" class="box" fill="#e5f4e8"/>
+<text x="1262.5" y="183" class="label" text-anchor="middle">证据与审计</text>
+<text x="1262.5" y="218" class="small" text-anchor="middle">工具回执 / 健康验证</text>
+<text x="1262.5" y="247" class="small" text-anchor="middle">Trace / Hash Chain</text>
+<text x="1262.5" y="276" class="small" text-anchor="middle">脱敏 / 权限过滤</text>
+<rect x="250" y="405" width="1000" height="90" rx="16" class="box" fill="#eef3fa"/>
+<text x="750.0" y="443" class="label" text-anchor="middle">写操作：具体提案 → 预检 → 逐动作审批 → 执行 → 验证</text>
 </svg>
